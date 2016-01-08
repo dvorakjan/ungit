@@ -14,19 +14,20 @@ var Promise = require('bluebird');
 
 var gitConfigArguments = ['-c', 'color.ui=false', '-c', 'core.quotepath=false', '-c', 'core.pager=cat'];
 
-var git = function(commands, repoPath, allowedCodes, outPipe) {
+var git = function(commands, repoPath, allowedCodes, outPipe, user) {
   commands = gitConfigArguments.concat(commands).filter(function(element) {
     return element;
   });
 
-  return new GitExecutionTask(commands, repoPath, allowedCodes, outPipe);
+  return new GitExecutionTask(commands, repoPath, allowedCodes, outPipe, user);
 }
 
-var GitExecutionTask = function(commands, repoPath, allowedCodes, outPipe) {
+var GitExecutionTask = function(commands, repoPath, allowedCodes, outPipe, user) {
   GitTask.call(this);
   var self = this;
   this.repoPath = repoPath;
   this.commands = commands;
+  this.user     = user;
   this._timeout = 2*60*1000; // Default timeout tasks after 2 min
   this.potentialError = new Error(); // caputers the stack trace here so that we can use it if the command fail later on
   this.potentialError.commmands = commands;
@@ -51,12 +52,23 @@ GitExecutionTask.prototype.timeout = function(timeout) {
 git.runningTasks = [];
 
 var gitQueue = async.queue(function (task, callback) {
+
+  var isSudo = false;
+  if (typeof task.user == 'string') {
+    isSudo = true;
+
+    task.commands.unshift('git');
+    task.commands.unshift(task.user);
+    task.commands.unshift('-u');
+  }
+
   if (config.logGitCommands) winston.info('git executing: ' + task.repoPath + ' ' + task.commands.join(' '));
   git.runningTasks.push(task);
   task.startTime = Date.now();
 
+
   var gitProcess = child_process.spawn(
-    'git',
+    isSudo ? 'sudo' : 'git',
     task.commands,
     {
       cwd: task.repoPath,
@@ -439,7 +451,7 @@ git.updateIndexFromFileList = function(repoPath, files) {
   return task;
 }
 
-git.commit = function(repoPath, amend, message, files) {
+git.commit = function(repoPath, amend, message, files, user) {
   var task = new GitTask();
 
   if (message === undefined)
@@ -451,7 +463,7 @@ git.commit = function(repoPath, amend, message, files) {
   var updateIndexTask = git.updateIndexFromFileList(repoPath, files)
     .fail(task.setResult)
     .done(function() {
-      git(['commit', (amend ? '--amend' : ''), '--file=-'], repoPath)
+      git(['commit', (amend ? '--amend' : ''), '--file=-'], repoPath, undefined, undefined, user)
         .always(function(err) {
           // ignore the case where nothing were added to be committed
           if (!err || err.stdout.indexOf("Changes not staged for commit") > -1) {

@@ -41,6 +41,7 @@
     "open": "~0.0.5",
     "os-homedir": "~1.0.1",
     "passport": "~0.3.0",
+    "passport-ldapauth": "^0.5.0",
     "passport-local": "~1.0.0",
     "raven": "~0.8.1",
     "rc": "~1.1.2",

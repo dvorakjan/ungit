@@ -8,6 +8,7 @@ var winston = require('winston');
 var sysinfo = require('./sysinfo');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+var LdapStrategy = require('passport-ldapauth');
 var semver = require('semver');
 var path = require('path');
 var fs = require('fs');
@@ -39,21 +40,34 @@ var users = config.users;
 config.users = null; // So that we don't send the users to the client
 
 if (config.authentication) {
+  if (config.ldap) {
+    passport.serializeUser(function(user, done) {
+      done(null, user);
+    });
 
-  passport.serializeUser(function(username, done) {
-    done(null, username);
-  });
+    passport.deserializeUser(function(user, done) {
+      done(null, user);
+    });
 
-  passport.deserializeUser(function(username, done) {
-    done(null, users[username] !== undefined ? username : null);
-  });
-
-  passport.use(new LocalStrategy(function(username, password, done) {
-    if (users[username] !== undefined && password === users[username])
+    passport.use(new LdapStrategy({
+      server: config.ldap
+    }));
+  } else {
+    passport.serializeUser(function (username, done) {
       done(null, username);
-    else
-      done(null, false, { message: 'No such username/password' });
-  }));
+    });
+
+    passport.deserializeUser(function (username, done) {
+      done(null, users[username] !== undefined ? username : null);
+    });
+
+    passport.use(new LocalStrategy(function (username, password, done) {
+      if (users[username] !== undefined && password === users[username])
+        done(null, username);
+      else
+        done(null, false, {message: 'No such username/password'});
+    }));
+  }
 }
 
 var app = express();
@@ -129,18 +143,29 @@ if (config.authentication) {
   app.use(passport.session());
 
   app.post('/api/login', function(req, res, next) {
-    passport.authenticate('local', function(err, user, info) {
-      if (err) { return next(err) }
+    var onAuthDone = function (err, user, info) {
+      if (err) {
+        return next(err)
+      }
       if (!user) {
-        res.status(401).json({ errorCode: 'authentication-failed', error: info.message });
+        res.status(401).json({errorCode: 'authentication-failed', error: info.message});
         return;
       }
-      req.logIn(user, function(err) {
-        if (err) { return next(err); }
-        res.json({ ok: true });
+      req.logIn(user, function (err) {
+        if (err) {
+          return next(err);
+        }
+        res.json({ok: true});
         return;
       });
-    })(req, res, next);
+    };
+
+    if (config.ldap) {
+      passport.authenticate('ldapauth', {session: false}, onAuthDone)(req, res, next);
+    } else {
+      passport.authenticate('local', onAuthDone)(req, res, next);
+    }
+
   });
 
   app.get('/api/loggedin', function(req, res){

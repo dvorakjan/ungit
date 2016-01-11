@@ -319,8 +319,12 @@ app.get('/api/gitversion', function(req, res) {
 app.get('/api/getrepolist', function(req, res) {
   if (typeof config.homeReposPath == 'string' && config.homeReposPath.length > 0) {
     res.json(fs.readdirSync(config.homeReposPath).filter(function (file) {
-      return fs.statSync(config.homeReposPath + '/' + file).isDirectory();
-    }));
+      try {
+        return fs.statSync(config.homeReposPath + '/' + file).isDirectory();
+      } catch (e) {
+        return false; 
+      }
+    }).map(function(dir){return config.homeReposPath+'/'+dir+'/customs'}));
   } else {
     res.json([]);
   }
@@ -356,6 +360,7 @@ app.post('/api/userconfig', ensureAuthenticated, function(req, res) {
 
 
 app.get('/api/fs/exists', ensureAuthenticated, function(req, res) {
+  console.log(req.query['path'])
   res.json(fs.existsSync(req.query['path']));
 });
 

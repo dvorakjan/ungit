@@ -139,6 +139,7 @@ var argv = yargs
 .describe('bugtracking', 'This will automatically send anonymous bug reports')
 .describe('sendUsageStatistics', 'Google analytics for usage statistics')
 .describe('authentication', 'True to enable authentication. Users are defined in the users configuration property')
+.describe('ldap', 'If authentication property is true, use this server config to auth user with given LDAP server. See https://github.com/vesse/passport-ldapauth for server config syntax.')
 .describe('users', 'Map of username/passwords which are granted access')
 .describe('showRebaseAndMergeOnlyOnRefs', 'Set to false to show rebase and merge on drag and drop on all nodes')
 .describe('maxConcurrentGitOperations', 'Maximum number of concurrent git operations')

@@ -161,7 +161,7 @@ exports.registerApi = function(env) {
         'fetch',
         req.body['remote'],
         req.body['ref'] ? req.body['ref'] : '',
-        config.autoPruneOnFetch ? '--prune' : '']), req.body['path'], undefined, undefined, req.session.passport.user)
+        config.autoPruneOnFetch ? '--prune' : '']), req.body['path'], undefined, undefined, req.session ? req.session.passport.user : '')
       .timeout(10 * 60 * 1000)
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))

@@ -53,24 +53,35 @@ git.runningTasks = [];
 
 var gitQueue = async.queue(function (task, callback) {
 
-  var isSudo = false;
+  // test string user when basic auth or object in case of ldap
+  var sudoUser = '';
   if (typeof task.user == 'string') {
-    isSudo = true;
-
+    sudoUser = task.user;
+  }
+  if (typeof task.user == 'object' && typeof task.user.uid == 'string') {
+    sudoUser = task.user.uid;
+  }
+  
+  if (sudoUser.length > 0) {
     task.commands.unshift('git');
-    task.commands.unshift('nginx');
-    task.commands.unshift('-g');
-    task.commands.unshift(task.user);
+    if (typeof config.sudoGroup == 'string' && config.sudoGroup.length > 0) {
+      task.commands.unshift(config.sudoGroup);
+      task.commands.unshift('-g');
+    }
+    task.commands.unshift(sudoUser);
     task.commands.unshift('-u');
+    var executable = 'sudo';
+  } else {
+    var executable = 'git';
   }
 
-  if (config.logGitCommands) winston.info('git executing: ' + task.repoPath + ' ' + task.commands.join(' '));
+  if (config.logGitCommands) winston.info('git executing: ' + task.repoPath + ' ' + executable + ' ' + task.commands.join(' '));
   git.runningTasks.push(task);
   task.startTime = Date.now();
 
 
   var gitProcess = child_process.spawn(
-    isSudo ? 'sudo' : 'git',
+    executable,
     task.commands,
     {
       cwd: task.repoPath,

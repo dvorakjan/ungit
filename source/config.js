@@ -60,6 +60,12 @@ var defaultConfig = {
   // Maximum number of automatic restarts after a crash. Undefined == unlimited.
   maxNAutoRestartOnCrash: undefined,
 
+  //Use logged in user as sudo -u {user} before git commands')
+  sudo : false,
+
+  // Use this value as sudo -g {group} before git commands (used only if sudo=true)
+  sudoGroup : '',
+
   // Don't fast forward git mergers. See git merge --no-ff documentation
   noFFMerge: true,
 
@@ -141,6 +147,8 @@ var argv = yargs
 .describe('authentication', 'True to enable authentication. Users are defined in the users configuration property')
 .describe('ldap', 'If authentication property is true, use this server config to auth user with given LDAP server. See https://github.com/vesse/passport-ldapauth for server config syntax.')
 .describe('users', 'Map of username/passwords which are granted access')
+.describe('sudo', 'Use logged in user as sudo -u value')
+.describe('sudoGroup', 'Use this value as sudo -g param')
 .describe('showRebaseAndMergeOnlyOnRefs', 'Set to false to show rebase and merge on drag and drop on all nodes')
 .describe('maxConcurrentGitOperations', 'Maximum number of concurrent git operations')
 .describe('forcedLaunchPath', 'Define path to be used on open. Can be set to null to force the home screen')

@@ -318,9 +318,8 @@ app.get('/api/gitversion', function(req, res) {
 
 app.get('/api/getrepolist', function(req, res) {
   if (typeof config.homeReposPath == 'string' && config.homeReposPath.length > 0) {
-    var path = '/Users/jandvorak/Development';
-    res.json(fs.readdirSync(path).filter(function (file) {
-      return fs.statSync(path + '/' + file).isDirectory();
+    res.json(fs.readdirSync(config.homeReposPath).filter(function (file) {
+      return fs.statSync(config.homeReposPath + '/' + file).isDirectory();
     }));
   } else {
     res.json([]);

@@ -61,7 +61,8 @@ var gitQueue = async.queue(function (task, callback) {
   if (typeof task.user == 'object' && typeof task.user.uid == 'string') {
     sudoUser = task.user.uid;
   }
-  
+
+  var command = 'git';
   if (sudoUser.length > 0) {
     task.commands.unshift('git');
     if (typeof config.sudoGroup == 'string' && config.sudoGroup.length > 0) {
@@ -70,18 +71,16 @@ var gitQueue = async.queue(function (task, callback) {
     }
     task.commands.unshift(sudoUser);
     task.commands.unshift('-u');
-    var executable = 'sudo';
-  } else {
-    var executable = 'git';
+    command = 'sudo';
   }
 
-  if (config.logGitCommands) winston.info('git executing: ' + task.repoPath + ' ' + executable + ' ' + task.commands.join(' '));
+  if (config.logGitCommands) winston.info('git executing: ' + task.repoPath + ' ' + command + ' ' + task.commands.join(' '));
   git.runningTasks.push(task);
   task.startTime = Date.now();
 
 
   var gitProcess = child_process.spawn(
-    executable,
+      command,
     task.commands,
     {
       cwd: task.repoPath,

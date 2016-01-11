@@ -52,11 +52,27 @@ HomeViewModel.prototype.shown = function() {
 }
 HomeViewModel.prototype.update = function() {
   var self = this;
-  var reposByPath = {};
-  this.repos().forEach(function(repo) { reposByPath[repo.path] = repo; });
-  this.repos(this.app.repoList().sort().map(function(path) {
-    if (!reposByPath[path])
-      reposByPath[path] = new HomeRepositoryViewModel(self, path);
-    return reposByPath[path];
-  }));
+
+  this.app.server.get('/getrepolist', undefined, function(err, repolist) {
+    if (!repolist) return;
+
+    // TODO when empty, use remote
+    //var reposByPath = {};
+    //this.repos().forEach(function(repo) { reposByPath[repo.path] = repo; });
+    //this.repos(this.app.repoList().sort().map(function(path) {
+    //  if (!reposByPath[path])
+    //    reposByPath[path] = new HomeRepositoryViewModel(self, path);
+    //  return reposByPath[path];
+    //}));
+
+    var reposByPath = {};
+    self.repos().forEach(function(repo) { reposByPath[repo.path] = repo; });
+    self.repos(repolist.map(function(path) {
+      if (!reposByPath[path])
+        reposByPath[path] = new HomeRepositoryViewModel(self, path);
+      return reposByPath[path];
+    }));
+  });
+
+
 }

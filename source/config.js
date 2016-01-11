@@ -75,6 +75,9 @@ var defaultConfig = {
   // Used for development purposes.
   dev: false,
 
+  // Path to folder whicih repos will be listed on homescreen
+  homeReposPath: '',
+
   // Specify a custom command to launch. `%U` will be replaced with the URL
   //  that corresponds with the working git directory.
   //
@@ -149,6 +152,7 @@ var argv = yargs
 .describe('users', 'Map of username/passwords which are granted access')
 .describe('sudo', 'Use logged in user as sudo -u value')
 .describe('sudoGroup', 'Use this value as sudo -g param')
+.describe('homeReposPath', 'Path to folder which will be listed on homescreen')
 .describe('showRebaseAndMergeOnlyOnRefs', 'Set to false to show rebase and merge on drag and drop on all nodes')
 .describe('maxConcurrentGitOperations', 'Maximum number of concurrent git operations')
 .describe('forcedLaunchPath', 'Define path to be used on open. Can be set to null to force the home screen')

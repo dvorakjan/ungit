@@ -316,6 +316,17 @@ app.get('/api/gitversion', function(req, res) {
   });
 });
 
+app.get('/api/getrepolist', function(req, res) {
+  if (typeof config.homeReposPath == 'string' && config.homeReposPath.length > 0) {
+    var path = '/Users/jandvorak/Development';
+    res.json(fs.readdirSync(path).filter(function (file) {
+      return fs.statSync(path + '/' + file).isDirectory();
+    }));
+  } else {
+    res.json([]);
+  }
+});
+
 var userConfigPath = path.join(config.homedir, '.ungitrc');
 function readUserConfig(callback) {
   fs.exists(userConfigPath, function(hasConfig) {

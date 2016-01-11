@@ -154,7 +154,7 @@ module.exports = function(grunt) {
         },
         src: [
           'Gruntfile.js',
-          'bin/*',
+          //'bin/*',
           'source/**/*.js',
         ]
       },

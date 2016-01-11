@@ -39,6 +39,9 @@ var defaultConfig = {
   // Map of username/passwords which are granted access.
   users: undefined,
 
+  // If authentication property is true, use this server config to auth user with given LDAP server. See https://github.com/vesse/passport-ldapauth for server config syntax.
+  ldap: false,
+
   // Set to false to show rebase and merge on drag and drop on all nodes.
   showRebaseAndMergeOnlyOnRefs: true,
 

@@ -131,7 +131,7 @@ exports.registerApi = function(env) {
     if (req.body['bare']) {
       arg.push('--bare', '--shared');
     }
-    git(arg, req.body['path'], undefined, undefined, req.session.passport.user)
+    git(arg, req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .start();
@@ -161,7 +161,7 @@ exports.registerApi = function(env) {
         'fetch',
         req.body['remote'],
         req.body['ref'] ? req.body['ref'] : '',
-        config.autoPruneOnFetch ? '--prune' : '']), req.body['path'], undefined, undefined, req.session ? req.session.passport.user : '')
+        config.autoPruneOnFetch ? '--prune' : '']), req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : '')
       .timeout(10 * 60 * 1000)
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
@@ -177,7 +177,7 @@ exports.registerApi = function(env) {
         'push',
         req.body['remote'],
         (req.body.refSpec ? req.body.refSpec : 'HEAD') + (req.body.remoteBranch ? ':' + req.body.remoteBranch : ''),
-        (req.body['force'] ? '-f' : '')]), req.body['path'], undefined, undefined, req.session.passport.user)
+        (req.body['force'] ? '-f' : '')]), req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : '')
       .timeout(10 * 60 * 1000)
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
@@ -185,7 +185,7 @@ exports.registerApi = function(env) {
   });
 
   app.post(exports.pathPrefix + '/reset', ensureAuthenticated, ensurePathExists, function(req, res) {
-    autoStashAndPop(req.body['path'], git(['reset', '--' + req.body['mode'], req.body.to], req.body['path'], undefined, undefined, req.session.passport.user))
+    autoStashAndPop(req.body['path'], git(['reset', '--' + req.body['mode'], req.body.to], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : ''))
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .always(emitWorkingTreeChanged.bind(null, req.body['path']))
@@ -250,7 +250,7 @@ exports.registerApi = function(env) {
   });
 
   app.post(exports.pathPrefix + '/commit', ensureAuthenticated, ensurePathExists, function(req, res){
-    git.commit(req.body['path'], req.body['amend'], req.body['message'], req.body['files'], req.session.passport.user)
+    git.commit(req.body['path'], req.body['amend'], req.body['message'], req.body['files'], req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .always(emitWorkingTreeChanged.bind(null, req.body['path']))
@@ -258,7 +258,7 @@ exports.registerApi = function(env) {
   });
 
   app.post(exports.pathPrefix + '/revert', ensureAuthenticated, ensurePathExists, function(req, res){
-    git(['revert', req.body['commit']], req.body['path'], undefined, undefined, req.session.passport.user)
+    git(['revert', req.body['commit']], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .always(emitWorkingTreeChanged.bind(null, req.body['path']))
@@ -398,7 +398,7 @@ exports.registerApi = function(env) {
   });
 
   app.post(exports.pathPrefix + '/cherrypick', ensureAuthenticated, ensurePathExists, function(req, res){
-    autoStashAndPop(req.body['path'], git(['cherry-pick', req.body['name'].trim()], req.body['path'], undefined, undefined, req.session.passport.user))
+    autoStashAndPop(req.body['path'], git(['cherry-pick', req.body['name'].trim()], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : ''))
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .always(emitWorkingTreeChanged.bind(null, req.body['path']))
@@ -439,7 +439,7 @@ exports.registerApi = function(env) {
   app.post(exports.pathPrefix + '/merge', ensureAuthenticated, ensurePathExists, function(req, res) {
     var noFF = '';
     if (config.noFFMerge) noFF = '--no-ff';
-    git(['merge', noFF, req.body.with.trim()], req.body['path'], undefined, undefined, req.session.passport.user)
+    git(['merge', noFF, req.body.with.trim()], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .always(emitWorkingTreeChanged.bind(null, req.body['path']))
@@ -447,7 +447,7 @@ exports.registerApi = function(env) {
   });
 
   app.post(exports.pathPrefix + '/merge/continue', ensureAuthenticated, ensurePathExists, function(req, res) {
-    git(['commit', '--file=-'], req.body['path'], undefined, undefined, req.session.passport.user)
+    git(['commit', '--file=-'], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : '')
       .started(function() {
         this.process.stdin.end(req.body['message']);
       })
@@ -458,7 +458,7 @@ exports.registerApi = function(env) {
   });
 
   app.post(exports.pathPrefix + '/merge/abort', ensureAuthenticated, ensurePathExists, function(req, res) {
-    git(['merge', '--abort'], req.body['path'], undefined, undefined, req.session.passport.user)
+    git(['merge', '--abort'], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .always(emitWorkingTreeChanged.bind(null, req.body['path']))
@@ -467,7 +467,7 @@ exports.registerApi = function(env) {
 
 
   app.post(exports.pathPrefix + '/rebase', ensureAuthenticated, ensurePathExists, function(req, res) {
-    git(['rebase', req.body.onto.trim()], req.body['path'], undefined, undefined, req.session.passport.user)
+    git(['rebase', req.body.onto.trim()], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .always(emitWorkingTreeChanged.bind(null, req.body['path']))
@@ -475,7 +475,7 @@ exports.registerApi = function(env) {
   });
 
   app.post(exports.pathPrefix + '/rebase/continue', ensureAuthenticated, ensurePathExists, function(req, res) {
-    git(['rebase', '--continue'], req.body['path'], undefined, undefined, req.session.passport.user)
+    git(['rebase', '--continue'], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .always(emitWorkingTreeChanged.bind(null, req.body['path']))
@@ -483,7 +483,7 @@ exports.registerApi = function(env) {
   });
 
   app.post(exports.pathPrefix + '/rebase/abort', ensureAuthenticated, ensurePathExists, function(req, res) {
-    git(['rebase', '--abort'], req.body['path'], undefined, undefined, req.session.passport.user)
+    git(['rebase', '--abort'], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .always(emitWorkingTreeChanged.bind(null, req.body['path']))

@@ -58,6 +58,8 @@ var gitQueue = async.queue(function (task, callback) {
     isSudo = true;
 
     task.commands.unshift('git');
+    task.commands.unshift('nginx');
+    task.commands.unshift('-g');
     task.commands.unshift(task.user);
     task.commands.unshift('-u');
   }

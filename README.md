@@ -10,6 +10,7 @@ Forked from [FredrikNoren/ungit](https://github.com/FredrikNoren/ungit) and adde
 ```bashp
 npm install -g forever 
 npm install -g grunt 
+npm install -g grunt-cli
 
 git clone https://github.com/dvorakjan/ungit.git /opt/ungit
 cd /opt/ungit

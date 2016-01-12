@@ -3,7 +3,7 @@ ungit
 
 Forked from [FredrikNoren/ungit](https://github.com/FredrikNoren/ungit) and added functionality:
   * LDAP authentication
-  * call git commands with logged in user name
+  * call git commands with ``sudo -u {logged in user name}``
   * list repos in given folder on homescreen
 
 ## Installation

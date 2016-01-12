@@ -316,20 +316,20 @@ git.diffFile = function(repoPath, filename, sha1) {
   return task;
 }
 
-git.discardAllChanges = function(repoPath) {
+git.discardAllChanges = function(repoPath, user) {
   var task = new GitTask();
 
-  var gitTask = git(['reset', '--hard', 'HEAD'], repoPath)
+  var gitTask = git(['reset', '--hard', 'HEAD'], repoPath, undefined, undefined, user)
     .fail(task.setResult)
     .done(function() {
-      git(['clean', '-fd'], repoPath).always(task.setResult).start();
+      git(['clean', '-fd'], repoPath, undefined, undefined, user).always(task.setResult).start();
     });
   task.started(gitTask.start);
 
   return task;
 }
 
-git.discardChangesInFile = function(repoPath, filename) {
+git.discardChangesInFile = function(repoPath, filename, user) {
   var task = new GitTask();
 
   var filePath = path.join(repoPath, filename);
@@ -349,7 +349,7 @@ git.discardChangesInFile = function(repoPath, filename) {
           });
         // If it's a changed file, reset the changes
         } else {
-          git(['checkout', 'HEAD', '--', filename.trim()], repoPath)
+          git(['checkout', 'HEAD', '--', filename.trim()], repoPath, undefined, undefined, user)
             .always(task.setResult)
             .start();
         }
@@ -499,7 +499,7 @@ git.commit = function(repoPath, amend, message, files, user) {
   return task;
 }
 
-git.resolveConflicts = function(repoPath, files) {
+git.resolveConflicts = function(repoPath, files, user) {
   var task = new GitTask();
 
   task.start = function() {
@@ -515,13 +515,13 @@ git.resolveConflicts = function(repoPath, files) {
       async.parallel([
         function(done) {
           if (toAdd.length == 0) return done();
-          git(['add', toAdd.map(function(file) { return file; })], repoPath)
+          git(['add', toAdd.map(function(file) { return file; })], repoPath, undefined, undefined, user)
             .always(done)
             .start();
         },
         function(done) {
           if (toRemove.length == 0) return done();
-          git(['rm', toRemove.map(function(file) { return file; })], repoPath)
+          git(['rm', toRemove.map(function(file) { return file; })], repoPath, undefined, undefined, user)
             .always(done)
             .start();
         },

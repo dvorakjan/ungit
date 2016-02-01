@@ -99,8 +99,8 @@ exports.registerApi = function(env) {
     }
   }
 
-  function autoStashAndPop(path, gitTask) {
-    if (config.autoStashAndPop) return git.stashAndPop(path, gitTask);
+  function autoStashAndPop(path, gitTask, user) {
+    if (config.autoStashAndPop) return git.stashAndPop(path, gitTask, user);
     else return gitTask;
   }
 
@@ -120,7 +120,7 @@ exports.registerApi = function(env) {
 
   app.get(exports.pathPrefix + '/status', ensureAuthenticated, ensurePathExists, function(req, res) {
     var repoPath = req.query['path'];
-    git.status(repoPath, null)
+    git.status(repoPath, null, req.session && req.session.passport ? req.session.passport.user : '')
       .always(function(err, result) {
         jsonResultOrFail(res, err, result);
       }).start();
@@ -185,7 +185,7 @@ exports.registerApi = function(env) {
   });
 
   app.post(exports.pathPrefix + '/reset', ensureAuthenticated, ensurePathExists, function(req, res) {
-    autoStashAndPop(req.body['path'], git(['reset', '--' + req.body['mode'], req.body.to], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : ''))
+    autoStashAndPop(req.body['path'], git(['reset', '--' + req.body['mode'], req.body.to], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : ''), req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .always(emitWorkingTreeChanged.bind(null, req.body['path']))
@@ -193,7 +193,7 @@ exports.registerApi = function(env) {
   });
 
   app.get(exports.pathPrefix + '/diff', ensureAuthenticated, ensurePathExists, function(req, res) {
-    git.diffFile(req.query['path'], req.query['file'], req.query['sha1'])
+    git.diffFile(req.query['path'], req.query['file'], req.query['sha1'], req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .start();
   });
@@ -201,7 +201,7 @@ exports.registerApi = function(env) {
   app.get(exports.pathPrefix + '/diff/image', ensureAuthenticated, ensurePathExists, function(req, res) {
     res.type(path.extname(req.query.filename));
     if (req.query.version !== 'current') {
-      git.binaryFileContent(req.query.path, req.query.filename, req.query.version, res).start();
+      git.binaryFileContent(req.query.path, req.query.filename, req.query.version, res, req.session && req.session.passport ? req.session.passport.user : '').start();
     } else {
       res.sendFile(path.join(req.query.path, req.query.filename));
     }
@@ -390,7 +390,7 @@ exports.registerApi = function(env) {
   });
 
   app.post(exports.pathPrefix + '/checkout', ensureAuthenticated, ensurePathExists, function(req, res){
-    autoStashAndPop(req.body['path'], git(['checkout', req.body.name.trim()], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : ''))
+    autoStashAndPop(req.body['path'], git(['checkout', req.body.name.trim()], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : ''), req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .always(emitWorkingTreeChanged.bind(null, req.body['path']))
@@ -398,7 +398,7 @@ exports.registerApi = function(env) {
   });
 
   app.post(exports.pathPrefix + '/cherrypick', ensureAuthenticated, ensurePathExists, function(req, res){
-    autoStashAndPop(req.body['path'], git(['cherry-pick', req.body['name'].trim()], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : ''))
+    autoStashAndPop(req.body['path'], git(['cherry-pick', req.body['name'].trim()], req.body['path'], undefined, undefined, req.session && req.session.passport ? req.session.passport.user : ''), req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .always(emitGitDirectoryChanged.bind(null, req.body['path']))
       .always(emitWorkingTreeChanged.bind(null, req.body['path']))
@@ -406,7 +406,7 @@ exports.registerApi = function(env) {
   });
 
   app.get(exports.pathPrefix + '/checkout', ensureAuthenticated, ensurePathExists, function(req, res){
-    git.getCurrentBranch(req.query['path'])
+    git.getCurrentBranch(req.query['path'], req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .start();
   });
@@ -419,7 +419,7 @@ exports.registerApi = function(env) {
   });
 
   app.get(exports.pathPrefix + '/remotes/:name', ensureAuthenticated, ensurePathExists, function(req, res){
-    git.getRemoteAddress(req.query['path'], req.params.name)
+    git.getRemoteAddress(req.query['path'], req.params.name, req.session && req.session.passport ? req.session.passport.user : '')
       .always(jsonResultOrFail.bind(null, res))
       .start();
   });

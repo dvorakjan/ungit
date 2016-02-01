@@ -169,13 +169,13 @@ git.queueTask = function(task) {
   gitQueue.push(task);
 }
 
-git.status = function(repoPath, file) {
+git.status = function(repoPath, file, user) {
   var task = new GitTask();
 
   task.start = function() {
     async.parallel([
       function(done) {
-        git(['status', '-s', '-b', '-u', (file || '')], repoPath)
+        git(['status', '-s', '-b', '-u', (file || '')], repoPath, undefined, undefined, user)
           .parser(gitParser.parseGitStatus)
           .fail(done)
           .done(function(status) {
@@ -194,7 +194,7 @@ git.status = function(repoPath, file) {
       },
       function(done) {
         // stats for staged files
-        git(['diff', '--numstat', '--cached', '--', (file || '')], repoPath)
+        git(['diff', '--numstat', '--cached', '--', (file || '')], repoPath, undefined, undefined, user)
           .parser(gitParser.parseGitStatusNumstat)
           .always(function(err, numstats) {
             done(null, numstats || {});
@@ -202,7 +202,7 @@ git.status = function(repoPath, file) {
       },
       function(done) {
         // stats for unstaged files
-        git(['diff', '--numstat', '--', (file || '')], repoPath)
+        git(['diff', '--numstat', '--', (file || '')], repoPath, undefined, undefined, user)
           .parser(gitParser.parseGitStatusNumstat)
           .always(function(err, numstats) {
             done(null, numstats || {});
@@ -233,17 +233,17 @@ git.status = function(repoPath, file) {
   return task;
 }
 
-git.getRemoteAddress = function(repoPath, remoteName) {
-  return git(['config', '--get', 'remote.' + remoteName + '.url'], repoPath)
+git.getRemoteAddress = function(repoPath, remoteName, user) {
+  return git(['config', '--get', 'remote.' + remoteName + '.url'], repoPath, undefined, undefined, user)
     .parser(function(text) {
       return addressParser.parseAddress(text.split('\n')[0]);
     });
 }
 
-git.stashAndPop = function(repoPath, wrappedTask) {
+git.stashAndPop = function(repoPath, wrappedTask, user) {
   var task = new GitTask();
 
-  var gitTask = git(['stash'], repoPath)
+  var gitTask = git(['stash'], repoPath, undefined, undefined, user)
     .always(function(err, res) {
       var hadLocalChanges = true;
       if (err) {
@@ -258,7 +258,7 @@ git.stashAndPop = function(repoPath, wrappedTask) {
           hadLocalChanges = false;
       }
       if (hadLocalChanges) {
-        var popTask = git(['stash', 'pop'], repoPath).always(task.setResult);
+        var popTask = git(['stash', 'pop'], repoPath, undefined, undefined, user).always(task.setResult);
         wrappedTask.always(function() { popTask.start(); });
       } else {
         wrappedTask.always(task.setResult);
@@ -269,11 +269,11 @@ git.stashAndPop = function(repoPath, wrappedTask) {
   return task;
 }
 
-git.binaryFileContent = function(repoPath, filename, version, outPipe) {
-  return git(['show', version + ':' + filename], repoPath, null, outPipe);
+git.binaryFileContent = function(repoPath, filename, version, outPipe, user) {
+  return git(['show', version + ':' + filename], repoPath, null, outPipe, user);
 }
 
-git.diffFile = function(repoPath, filename, sha1) {
+git.diffFile = function(repoPath, filename, sha1, user) {
   var task = new GitTask();
 
   var statusTask = git.status(repoPath)
@@ -299,11 +299,11 @@ git.diffFile = function(repoPath, filename, sha1) {
           gitCommands = ['diff', 'HEAD', '--', filename.trim()];
         }
 
-        git(gitCommands, repoPath, allowedCodes).always(function(err, result) {
+        git(gitCommands, repoPath, allowedCodes, undefined, user).always(function(err, result) {
           // when <rev> is very first commit and 'diff <rev>~1:[file] <rev>:[file]' is performed,
           // it will error out with invalid object name error
           if (sha1 && err && err.error.indexOf('bad revision') > -1) {
-            git(gitNewFileCompare, repoPath, [0, 1]).always(task.setResult).start();
+            git(gitNewFileCompare, repoPath, [0, 1], undefined, user).always(task.setResult).start();
           } else {
             task.setResult(err, result);
           }
@@ -354,7 +354,7 @@ git.discardChangesInFile = function(repoPath, filename, user) {
             .start();
         }
       } else {
-        git(['rm', '-f', filename], repoPath).always(task.setResult).start();
+        git(['rm', '-f', filename], repoPath, undefined, undefined, user).always(task.setResult).start();
       }
     });
   task.started(statusTask.start);
@@ -362,18 +362,18 @@ git.discardChangesInFile = function(repoPath, filename, user) {
   return task;
 }
 
-var parseDiffForPatch = function (patch, repoPath) {
+var parseDiffForPatch = function (patch, repoPath, user) {
   return new Promise(function (resolve, reject) {
-    git(['diff', patch.name], repoPath)
+    git(['diff', patch.name], repoPath, undefined, undefined, user)
       .fail(reject)
       .done(resolve).start();
   });
 }
 
-var applyPatchedDiff = function(patch, repoPath, patchedDiff) {
+var applyPatchedDiff = function(patch, repoPath, patchedDiff, user) {
   return new Promise(function (resolve, reject) {
     if (patchedDiff) {
-      git(['apply', '--cached'], repoPath)
+      git(['apply', '--cached'], repoPath, undefined, undefined, user)
         .fail(reject)
         .done(resolve)
         .started(function() {
@@ -385,7 +385,7 @@ var applyPatchedDiff = function(patch, repoPath, patchedDiff) {
   });
 }
 
-git.updateIndexFromFileList = function(repoPath, files) {
+git.updateIndexFromFileList = function(repoPath, files, user) {
   var task = new GitTask();
   var statusTask;
 
@@ -416,7 +416,7 @@ git.updateIndexFromFileList = function(repoPath, files) {
         resolve();
         return;
       }
-      git(['update-index', '--add', '--stdin'], repoPath)
+      git(['update-index', '--add', '--stdin'], repoPath, undefined, undefined, user)
         .done(resolve)
         .fail(reject)
         .started(function() {
@@ -430,7 +430,7 @@ git.updateIndexFromFileList = function(repoPath, files) {
         resolve();
         return;
       }
-      git(['update-index', '--remove', '--stdin'], repoPath)
+      git(['update-index', '--remove', '--stdin'], repoPath, undefined, undefined, user)
         .done(resolve)
         .fail(reject)
         .started(function() {
@@ -448,9 +448,9 @@ git.updateIndexFromFileList = function(repoPath, files) {
       var diffPatchArray = [];
       // handle patchings per file bases
       for (var n = 0; n < toPatch.length; n++) {
-        diffPatchArray.push(parseDiffForPatch(toPatch[n], repoPath)
+        diffPatchArray.push(parseDiffForPatch(toPatch[n], repoPath, user)
           .then(gitParser.parsePatchDiffResult.bind(null, toPatch[n].patchLineList))
-          .then(applyPatchedDiff.bind(null, toPatch[n], repoPath)));
+          .then(applyPatchedDiff.bind(null, toPatch[n], repoPath, undefined, user)));
       }
 
       Promise.all(diffPatchArray).then(resolve, reject);
@@ -472,7 +472,7 @@ git.commit = function(repoPath, amend, message, files, user) {
   if ((!(Array.isArray(files)) || files.length == 0) && !amend)
     return task.setResult({ error: 'Must specify files or amend to commit' });
 
-  var updateIndexTask = git.updateIndexFromFileList(repoPath, files)
+  var updateIndexTask = git.updateIndexFromFileList(repoPath, files, user)
     .fail(task.setResult)
     .done(function() {
       git(['commit', (amend ? '--amend' : ''), '--file=-'], repoPath, undefined, undefined, user)
@@ -536,9 +536,9 @@ git.resolveConflicts = function(repoPath, files, user) {
   return task;
 }
 
-git.getCurrentBranch = function(repoPath) {
+git.getCurrentBranch = function(repoPath, user) {
   var task = new GitTask();
-  var gitTask = git(['rev-parse', '--show-toplevel'], repoPath)
+  var gitTask = git(['rev-parse', '--show-toplevel'], repoPath, undefined, undefined, user)
     .fail(task.setResult)
     .done(function(rootRepoPath) {
 

@@ -60,7 +60,7 @@ var defaultConfig = {
   // Maximum number of automatic restarts after a crash. Undefined == unlimited.
   maxNAutoRestartOnCrash: undefined,
 
-  //Use logged in user as sudo -u {user} before git commands')
+  //Use logged in user as sudo -u {user} before git commands
   sudo : false,
 
   // Use this value as sudo -g {group} before git commands (used only if sudo=true)

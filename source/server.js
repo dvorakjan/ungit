@@ -70,6 +70,10 @@ if (config.authentication) {
   }
 }
 
+if (config.umask) {
+  process.umask(config.umask);
+}
+
 var app = express();
 var server = require('http').createServer(app);
 

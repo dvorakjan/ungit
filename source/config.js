@@ -75,6 +75,9 @@ var defaultConfig = {
   // Used for development purposes.
   dev: false,
 
+  // Set umask of node process if different than null
+  umask: 0002,
+
   // Path to folder whicih repos will be listed on homescreen
   homeReposPath: '',
 
@@ -151,6 +154,7 @@ var argv = yargs
 .describe('ldap', 'If authentication property is true, use this server config to auth user with given LDAP server. See https://github.com/vesse/passport-ldapauth for server config syntax.')
 .describe('users', 'Map of username/passwords which are granted access')
 .describe('sudo', 'Use logged in user as sudo -u value')
+.describe('umask', 'Set umask of node process if different than null')
 .describe('sudoGroup', 'Use this value as sudo -g param')
 .describe('homeReposPath', 'Path to folder which will be listed on homescreen')
 .describe('showRebaseAndMergeOnlyOnRefs', 'Set to false to show rebase and merge on drag and drop on all nodes')

@@ -64,16 +64,9 @@ var gitQueue = async.queue(function (task, callback) {
 
   var command = 'git';
   if (sudoUser.length > 0) {
+    task.commands.unshift('git');
     if (config.umask) {
-      task.commands.push('"');
-      task.commands.unshift('git')
-      task.commands.unshift('&&')
-      task.commands.unshift(config.umask)
-      task.commands.unshift('"umask');
-      task.commands.unshift('-c');
-      task.commands.unshift('bash');
-    } else {
-      task.commands.unshift('git');
+      task.commands = ['bash', '-c', '"umask ' + config.umask + ' && ' + task.commands.join(' ') + '"'];
     }
 
     if (typeof config.sudoGroup == 'string' && config.sudoGroup.length > 0) {
@@ -83,7 +76,6 @@ var gitQueue = async.queue(function (task, callback) {
     task.commands.unshift(sudoUser);
     task.commands.unshift('-u');
     command = 'sudo';
-
   }
 
   if (config.logGitCommands) winston.info('git executing: ' + task.repoPath + ' ' + command + ' ' + task.commands.join(' '));

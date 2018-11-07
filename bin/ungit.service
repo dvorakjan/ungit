@@ -1,0 +1,21 @@
+[Unit]
+Description=Daemon for running Ungit Git GUI
+
+[Service]
+ExecStart=/usr/bin/node source/server.js
+WorkingDirectory=/home/ungit
+
+# try to restart service 5 times with 20s delay, then fail
+Restart=always
+RestartSec=20
+StartLimitBurst=5
+StartLimitInterval=150
+
+Environment=ENV=production
+User=nginx
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=ungit
+
+[Install]
+WantedBy=multi-user.target

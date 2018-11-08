@@ -17,8 +17,15 @@ cd /opt/ungit
 npm install
 grunt
 
+# SysVInit
 ln -s /opt/ungit/bin/initScript.sh /etc/init.d/ungit
 chmod +x /etc/init.d/ungit
+
+# Systemd
+cp /opt/ungit/bin/ungit.service /etc/systemd/system/ungit.service
+systemctl daemon-reload
+systemctl enable ungit
+systemctl start ungit
 
 # Ubuntu
 update-rc.d ungit defaults

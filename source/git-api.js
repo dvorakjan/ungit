@@ -115,7 +115,7 @@ exports.registerApi = function(env) {
 
   function credentialsOption(socketId) {
     var credentialsHelperPath = path.resolve(__dirname, '..', 'bin', 'credentials-helper').replace(/\\/g, '/');
-    return ['-c', 'credential.helper=' + [credentialsHelperPath, socketId, config.port].join(' ')];
+    return ['-c', 'credential.helper="' + [credentialsHelperPath, socketId, config.port].join(' ') + '"'];
   }
 
   app.get(exports.pathPrefix + '/status', ensureAuthenticated, ensurePathExists, function(req, res) {

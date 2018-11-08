@@ -66,7 +66,7 @@ var gitQueue = async.queue(function (task, callback) {
   if (sudoUser.length > 0) {
     task.commands.unshift('git');
     if (config.umask) {
-      task.commands = ['bash', '-c', '"umask ' + config.umask + ' && ' + task.commands.join(' ') + '"'];
+      task.commands = ['bash', '-c', 'umask ' + config.umask + ' && ' + task.commands.join(' ')];
     }
 
     if (typeof config.sudoGroup == 'string' && config.sudoGroup.length > 0) {
